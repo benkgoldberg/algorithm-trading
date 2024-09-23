@@ -1,0 +1,3 @@
+/Users/bengoldberg/Documents/Algorithm Trading/algorithm-trading/TwsApiCpp/build/CMakeFiles/TwsApiCpp.dir
+/Users/bengoldberg/Documents/Algorithm Trading/algorithm-trading/TwsApiCpp/build/CMakeFiles/edit_cache.dir
+/Users/bengoldberg/Documents/Algorithm Trading/algorithm-trading/TwsApiCpp/build/CMakeFiles/rebuild_cache.dir

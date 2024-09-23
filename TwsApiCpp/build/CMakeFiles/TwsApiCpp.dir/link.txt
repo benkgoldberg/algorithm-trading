@@ -1,0 +1,2 @@
+/Library/Developer/CommandLineTools/usr/bin/ar qc libTwsApiCpp.a CMakeFiles/TwsApiCpp.dir/src/EClientSocketBase.cpp.o CMakeFiles/TwsApiCpp.dir/src/EPosixClientSocket.cpp.o
+/Library/Developer/CommandLineTools/usr/bin/ranlib libTwsApiCpp.a
