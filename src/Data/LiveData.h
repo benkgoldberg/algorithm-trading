@@ -10,7 +10,7 @@
 
 class LiveData {
 public:
-    static const size_t MAX_BUFFER_SIZE = 1000; // Or any other appropriate value
+    static const size_t MAX_BUFFER_SIZE = 1000;
 
     LiveData(MyClient& client);
     void requestData();

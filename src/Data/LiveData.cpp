@@ -7,8 +7,6 @@
 #include <ctime>
 #include "Helpers.h"
 
-const size_t MAX_BUFFER_SIZE = 1000; // Or any other appropriate value
-
 LiveData::LiveData(MyClient& client) 
     : m_client(client), m_tickerId(2) {
     std::cout << "Enter ticker symbol for live data: ";
