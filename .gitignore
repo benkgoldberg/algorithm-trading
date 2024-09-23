@@ -1,4 +1,6 @@
 /build/
+.DS_STORE
+/client/
 *.o
 *.a
 *.dylib
