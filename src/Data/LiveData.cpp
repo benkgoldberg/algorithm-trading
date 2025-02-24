@@ -5,14 +5,18 @@
 #include <chrono>
 #include <iomanip>
 #include <ctime>
-#include "Helpers.h"
+#include "Helper/Helpers.h"
 
-LiveData::LiveData(MyClient& client) 
-    : m_client(client), m_tickerId(2) {
+LiveData::LiveData(MyClient& client)
+    : m_client(client), m_tickerId(2), m_running(false) {
     std::cout << "Enter ticker symbol for live data: ";
     std::cin >> m_tickerSymbol;
     contract = createStockContract(m_tickerSymbol);
     m_latestTickData.symbol = m_tickerSymbol;  // Initialize the symbol
+}
+
+LiveData::~LiveData() {
+    stopAsyncDataCollection();
 }
 
 Contract LiveData::createStockContract(const std::string& symbol) {
@@ -31,6 +35,7 @@ void LiveData::requestData() {
     std::cout << "Market data request sent for " << m_tickerSymbol << std::endl;
 }
 
+/*
 void LiveData::printLiveData() {
     std::cout << "Live market data for " << m_tickerSymbol << ":" << std::endl;
     auto start = std::chrono::steady_clock::now();
@@ -41,14 +46,14 @@ void LiveData::printLiveData() {
         m_client.client.checkMessages();
         if (m_client.lastPrice > 0 || m_client.bidPrice > 0 || m_client.askPrice > 0) {
             std::time_t now_c = Helpers::getCurrentUTCTime();
-            
+
             // Convert to Eastern Time
             std::time_t eastern_time = Helpers::convertToEasternTime(now_c);
             std::tm* eastern_tm = std::localtime(&eastern_time);
 
-            std::cout << "Time (ET): " 
+            std::cout << "Time (ET): "
                       << std::put_time(eastern_tm, "%Y-%m-%d %H:%M:%S");
-            
+
             if (m_client.lastPrice > 0) {
                 std::cout << ", Last: " << m_client.lastPrice;
             }
@@ -72,12 +77,13 @@ void LiveData::printLiveData() {
 
     m_client.client.cancelMktData(m_tickerId);
 }
+*/
 
 void LiveData::processHighFrequencyData() {
     std::lock_guard<std::mutex> lock(m_dataMutex);
-    
+
     bool newDataReceived = false;
-    
+
     if (m_client.lastPrice > 0) {
         m_latestTickData.price = m_client.lastPrice;
         newDataReceived = true;
@@ -90,10 +96,10 @@ void LiveData::processHighFrequencyData() {
         m_latestTickData.ask = m_client.askPrice;
         newDataReceived = true;
     }
-    
+
     if (newDataReceived) {
         m_latestTickData.timestamp = std::chrono::system_clock::now();
-        
+
         m_tickDataBuffer.push_back(m_latestTickData);
         if (m_tickDataBuffer.size() > MAX_BUFFER_SIZE) {
             m_tickDataBuffer.erase(m_tickDataBuffer.begin());
@@ -111,25 +117,50 @@ TickData LiveData::getLatestTickData() {
 
 void LiveData::printLatestTickData() const {
     std::lock_guard<std::mutex> lock(m_dataMutex);
-    
-    if (m_latestTickData.price <= 0 && m_latestTickData.bid <= 0 && m_latestTickData.ask <= 0) {
-        std::cout << "No market data available yet for " << m_tickerSymbol << "." << std::endl;
-        return;
-    }
-    
+
     auto now = std::chrono::system_clock::to_time_t(m_latestTickData.timestamp);
     std::cout << "Time: " << std::put_time(std::localtime(&now), "%Y-%m-%d %H:%M:%S")
               << ", Symbol: " << m_latestTickData.symbol;
-    
+
     if (m_latestTickData.price > 0) {
         std::cout << ", Price: " << m_latestTickData.price;
+    } else {
+        std::cout << ", Price: N/A";
     }
     if (m_latestTickData.bid > 0) {
         std::cout << ", Bid: " << m_latestTickData.bid;
+    } else {
+        std::cout << ", Bid: N/A";
     }
     if (m_latestTickData.ask > 0) {
         std::cout << ", Ask: " << m_latestTickData.ask;
+    } else {
+        std::cout << ", Ask: N/A";
     }
-    
+
     std::cout << std::endl;
+}
+
+void LiveData::startAsyncDataCollection(std::chrono::milliseconds interval) {
+    if (!m_running) {
+        m_running = true;
+        m_dataCollectionThread = std::thread(&LiveData::asyncDataCollection, this, interval);
+    }
+}
+
+void LiveData::stopAsyncDataCollection() {
+    if (m_running) {
+        m_running = false;
+        if (m_dataCollectionThread.joinable()) {
+            m_dataCollectionThread.join();
+        }
+    }
+}
+
+void LiveData::asyncDataCollection(std::chrono::milliseconds interval) {
+    while (m_running) {
+        m_client.client.checkMessages();
+        processHighFrequencyData();
+        std::this_thread::sleep_for(interval);
+    }
 }

@@ -5,7 +5,7 @@
 
 class KalmanFilterAlgorithm : public HFTAlgorithm {
 public:
-    KalmanFilterAlgorithm(SimulatedExecution& executor, LiveData& dataFeed, 
+    KalmanFilterAlgorithm(SimulatedExecution& executor, LiveData& dataFeed,
                           double processNoise = 1e-5, double measurementNoise = 1e-1);
     void processData(const TickData& data) override;
     void run() override;

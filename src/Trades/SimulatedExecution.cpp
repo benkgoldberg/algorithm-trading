@@ -2,7 +2,7 @@
 #include <algorithm>
 #include <iostream>
 
-SimulatedExecution::SimulatedExecution(MyClient& client, double initialBalance) 
+SimulatedExecution::SimulatedExecution(MyClient& client, double initialBalance)
     : m_client(client), m_accountBalance(initialBalance) {}
 
 void SimulatedExecution::placeOrder(const Order& order) {
@@ -16,13 +16,16 @@ void SimulatedExecution::placeOrder(const Order& order) {
 }
 
 void SimulatedExecution::processOrders(double currentBid, double currentAsk) {
+    // NOTE: Might cause nested mutex locks, but needed in this method
     std::lock_guard<std::mutex> lock(m_mutex);
 
     // Process market orders
     while (!m_orderQueue.empty()) {
         auto order = m_orderQueue.front();
         m_orderQueue.pop();
+
         double executionPrice = (order.getSide() == OrderSide::Buy) ? currentAsk : currentBid;
+
         if (canExecuteOrder(order, executionPrice)) {
             executeOrder(order, executionPrice);
         } else {
@@ -32,6 +35,7 @@ void SimulatedExecution::processOrders(double currentBid, double currentAsk) {
 
     // Process limit orders
     auto it = m_limitOrders.begin();
+
     while (it != m_limitOrders.end()) {
         if (it->getSide() == OrderSide::Buy && currentAsk <= it->getPrice()) {
             if (canExecuteOrder(*it, currentAsk)) {
@@ -52,6 +56,7 @@ void SimulatedExecution::processOrders(double currentBid, double currentAsk) {
 
 void SimulatedExecution::executeOrder(const Order& order, double executionPrice) {
     std::lock_guard<std::mutex> lock(m_mutex);
+
     double quantity = (order.getSide() == OrderSide::Buy) ? order.getQuantity() : -order.getQuantity();
     double orderCost = std::abs(quantity) * executionPrice;
 
@@ -117,9 +122,11 @@ double SimulatedExecution::getAccountBalance() const {
 
 bool SimulatedExecution::canExecuteOrder(const Order& order, double executionPrice) const {
     std::lock_guard<std::mutex> lock(m_mutex);
+
     if (order.getSide() == OrderSide::Buy) {
         double orderCost = order.getQuantity() * executionPrice;
         return m_accountBalance.load() >= orderCost;
     }
+
     return true;  // We assume you can always sell (no short selling restrictions)
 }

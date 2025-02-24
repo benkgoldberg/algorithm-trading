@@ -1,15 +1,17 @@
 // main.cpp
-#include "MyClient.h"
-#include "LiveData.h"
 #include <thread>
 #include <chrono>
+#include <vector>
+#include <memory>
+
+#include "Data/MyClient.h"
+#include "Data/LiveData.h"
+#include "Data/HistoricalData.h"
 #include "Algorithms/HFTAlgorithm.h"
 #include "Algorithms/SimpleMovingAverageCrossover.h"
 #include "Algorithms/RSIAlgorithm.h"
 #include "Algorithms/MonteCarloAlgorithm.h"
 #include "Algorithms/KalmanFilterAlgorithm.h"
-#include <vector>
-#include <memory>
 
 void runAlgorithm(std::unique_ptr<HFTAlgorithm> algorithm) {
     algorithm->run();
@@ -21,10 +23,10 @@ int main() {
 
     if (connected) {
         std::cout << "Connected to TWS successfully." << std::endl;
-        
+
         // Wait a bit to ensure the connection is stable
         std::this_thread::sleep_for(std::chrono::seconds(2));
-        
+
         // Check if still connected
         if (!client.client.isConnected()) {
             std::cerr << "Lost connection to TWS." << std::endl;
@@ -42,23 +44,35 @@ int main() {
         switch (choice) {
             case 1: {
                 // Historical Data
-                // HistoricalData historicalData(client);
-                // historicalData.requestData();
-                // historicalData.printHistoricalData();
+                HistoricalData historicalData(client);
+                historicalData.requestData();
+                historicalData.printHistoricalData();
                 break;
             }
             case 2: {
                 // Live Data
                 LiveData liveData(client);
                 liveData.requestData();
-                liveData.printLiveData();  // This method already handles data collection and printing
+                liveData.startAsyncDataCollection(std::chrono::milliseconds(100));  // Check every 100ms
+
+                // Process and print initial data for about 10 seconds
+                auto start = std::chrono::steady_clock::now();
+                auto end = start + std::chrono::seconds(10);
+
+                std::cout << "Collecting initial data for 10 seconds..." << std::endl;
+                while (std::chrono::steady_clock::now() < end) {
+                    liveData.printLatestTickData();  // Print the latest tick data
+                    std::this_thread::sleep_for(std::chrono::seconds(1));  // Print every 1 second
+                }
+
+                liveData.stopAsyncDataCollection();
                 break;
             }
             case 3: {
                 // HFT Algorithm
                 SimulatedExecution executor(client);
                 LiveData liveData(client);
-                
+
                 // Request data explicitly
                 liveData.requestData();
 
@@ -127,11 +141,13 @@ int main() {
                     auto end = start + std::chrono::seconds(10);
 
                     std::cout << "Collecting initial data for 10 seconds..." << std::endl;
+                    liveData.startAsyncDataCollection(std::chrono::milliseconds(100));  // Start async data collection
+
                     while (std::chrono::steady_clock::now() < end) {
-                        client.client.checkMessages();
-                        liveData.processHighFrequencyData();
+                        // Remove this line:
+                        // liveData.processHighFrequencyData();
                         liveData.printLatestTickData();  // Print the latest tick data
-                        std::this_thread::sleep_for(std::chrono::seconds(1));  // Check every 1 second
+                        std::this_thread::sleep_for(std::chrono::seconds(1));  // Print every 1 second
                     }
 
                     algorithm->run();
@@ -141,6 +157,8 @@ int main() {
                     std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
                     std::cin.get();
                     algorithm->stop();
+
+                    liveData.stopAsyncDataCollection();  // Stop async data collection
                 }
 
                 break;

@@ -7,16 +7,21 @@
 #include <string>
 #include <vector>
 #include <mutex>
+#include <atomic>
+#include <thread>
+#include <chrono>
 
 class LiveData {
 public:
     static const size_t MAX_BUFFER_SIZE = 1000;
 
     LiveData(MyClient& client);
+    ~LiveData();
     void requestData();
-    void printLiveData();
-    void requestHighFrequencyData();
-    void processHighFrequencyData();
+    // Comment out this line:
+    // void printLiveData();
+    void startAsyncDataCollection(std::chrono::milliseconds interval);
+    void stopAsyncDataCollection();
     TickData getLatestTickData();
     void printLatestTickData() const;
 
@@ -29,6 +34,11 @@ private:
     std::vector<TickData> m_tickDataBuffer;
     TickData m_latestTickData;
     mutable std::mutex m_dataMutex;
+    std::atomic<bool> m_running;
+    std::thread m_dataCollectionThread;
+
+    void asyncDataCollection(std::chrono::milliseconds interval);
+    void processHighFrequencyData();
 };
 
 #endif // LIVE_DATA_H

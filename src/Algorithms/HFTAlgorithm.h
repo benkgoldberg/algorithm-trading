@@ -1,7 +1,7 @@
 #pragma once
-#include "SimulatedExecution.h"
-#include "LiveData.h"
-#include "TickData.h"
+#include "Trades/SimulatedExecution.h"
+#include "Data/LiveData.h"
+#include "Data/TickData.h"
 #include <atomic>
 
 class HFTAlgorithm {

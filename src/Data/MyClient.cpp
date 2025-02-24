@@ -23,26 +23,26 @@ void MyClient::historicalData(TickerId reqId, const IBString& date, double open,
 }
 
 void MyClient::tickPrice(TickerId tickerId, TickType field, double price, int canAutoExecute) {
-    std::cout << "Received tick: TickerId=" << tickerId << ", Field=" << field << ", Price=" << price << std::endl;
+    //std::cout << "Received tick: TickerId=" << tickerId << ", Field=" << field << ", Price=" << price << std::endl;
     switch (field) {
         case LAST:
             lastPrice = price;
-            std::cout << "Updated lastPrice: " << lastPrice << std::endl;
+            //std::cout << "Updated lastPrice: " << lastPrice << std::endl;
             break;
         case BID:
             bidPrice = price;
-            std::cout << "Updated bidPrice: " << bidPrice << std::endl;
+            //std::cout << "Updated bidPrice: " << bidPrice << std::endl;
             break;
         case ASK:
             askPrice = price;
-            std::cout << "Updated askPrice: " << askPrice << std::endl;
+            //std::cout << "Updated askPrice: " << askPrice << std::endl;
             break;
         default:
-            std::cout << "Unhandled tick type: " << field << std::endl;
+            //std::cout << "Unhandled tick type: " << field << std::endl;
             break;
     }
     marketDataReceived = true;
-    std::cout << "marketDataReceived set to true" << std::endl;
+    //std::cout << "marketDataReceived set to true" << std::endl;
 }
 
 // Implement other EWrapper methods with empty bodies
