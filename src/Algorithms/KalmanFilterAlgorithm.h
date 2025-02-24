@@ -1,5 +1,7 @@
 #pragma once
 #include "HFTAlgorithm.h"
+#include "Trades/SimulatedExecution.h"
+#include "Data/LiveData.h"
 #include "Data/TickData.h"
 #include <vector>
 

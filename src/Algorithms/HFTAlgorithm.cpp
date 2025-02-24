@@ -1,6 +1,4 @@
 #include "HFTAlgorithm.h"
-#include "Trades/SimulatedExecution.h"
-#include "Data/LiveData.h"
 
 HFTAlgorithm::HFTAlgorithm(SimulatedExecution& executor, LiveData& dataFeed, double stopLossPercentage, double takeProfitPercentage)
     : m_executor(executor), m_dataFeed(dataFeed), m_running(false), m_stopLossPercentage(stopLossPercentage), m_takeProfitPercentage(takeProfitPercentage), m_entryPrice(0) {}

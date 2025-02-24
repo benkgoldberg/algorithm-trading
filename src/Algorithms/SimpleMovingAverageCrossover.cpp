@@ -1,7 +1,6 @@
 #include "SimpleMovingAverageCrossover.h"
 #include "Trades/SimulatedExecution.h"
 #include "Data/LiveData.h"
-#include "Data/TickData.h"
 #include <numeric>
 #include <thread>
 
@@ -10,23 +9,23 @@ SimpleMovingAverageCrossover::SimpleMovingAverageCrossover(SimulatedExecution& e
 
 void SimpleMovingAverageCrossover::processData(const TickData& data) {
     updateMovingAverages(data.price);
-    
+
     if (m_inPosition) {
         if (checkStopLossAndTakeProfit(data)) {
             m_inPosition = false;
             return;
         }
     }
-    
+
     checkForCrossover(data);
 }
 
 void SimpleMovingAverageCrossover::run() {
     m_running = true;
     std::chrono::system_clock::time_point lastProcessedTime{};
-    
+
     std::cout << "Starting SimpleMovingAverageCrossover algorithm..." << std::endl;
-    
+
     while (m_running) {
         try {
             auto data = m_dataFeed.getLatestTickData();
@@ -43,7 +42,7 @@ void SimpleMovingAverageCrossover::run() {
         }
         std::this_thread::sleep_for(std::chrono::seconds(1));
     }
-    
+
     std::cout << "SimpleMovingAverageCrossover algorithm stopped." << std::endl;
 }
 

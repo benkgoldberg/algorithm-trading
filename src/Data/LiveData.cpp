@@ -1,11 +1,11 @@
 #include "LiveData.h"
-#include "TickData.h"
+#include "Helper/Helpers.h"
+
 #include <iostream>
 #include <thread>
 #include <chrono>
 #include <iomanip>
 #include <ctime>
-#include "Helper/Helpers.h"
 
 LiveData::LiveData(MyClient& client)
     : m_client(client), m_tickerId(2), m_running(false) {
