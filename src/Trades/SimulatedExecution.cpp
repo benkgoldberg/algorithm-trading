@@ -7,7 +7,9 @@ SimulatedExecution::SimulatedExecution(MyClient& client, double initialBalance)
 
 void SimulatedExecution::placeOrder(const Order& order) {
     std::lock_guard<std::mutex> lock(m_mutex);
+
     printOrderPlacement(order);
+
     if (order.getType() == OrderType::Market) {
         m_orderQueue.push(order);
     } else {
@@ -95,7 +97,6 @@ Position SimulatedExecution::getPosition(const std::string& symbol) const {
 }
 
 void SimulatedExecution::printOrderPlacement(const Order& order) const {
-    std::lock_guard<std::mutex> lock(m_mutex);
     std::cout << "Order placed: "
               << "Symbol: " << order.getSymbol()
               << ", Type: " << (order.getType() == OrderType::Market ? "Market" : "Limit")
@@ -106,7 +107,6 @@ void SimulatedExecution::printOrderPlacement(const Order& order) const {
 }
 
 void SimulatedExecution::printOrderExecution(const Order& order, double executionPrice) const {
-    std::lock_guard<std::mutex> lock(m_mutex);
     std::cout << "Order executed: "
               << "Symbol: " << order.getSymbol()
               << ", Side: " << (order.getSide() == OrderSide::Buy ? "Buy" : "Sell")
